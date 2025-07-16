@@ -1,0 +1,9 @@
+{
+   "cSpell.words": ["codepaths", "deebeetech", "sebbo", "tsbuildinfo", "tseslint", "Weatherby"],
+   "editor.defaultFormatter": "esbenp.prettier-vscode",
+   "editor.formatOnSave": true,
+   "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+   },
+   "typescript.tsdk": "node_modules/typescript/lib"
+}

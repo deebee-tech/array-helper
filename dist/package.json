@@ -1,0 +1,60 @@
+{
+   "name": "@deebeetech/array-helper",
+   "version": "1.2.0",
+   "description": "A small collection of extra methods for arrays that we mostly needed from LoDash and Underscore that we didn't want to carry the weight of those installs.",
+   "homepage": "https://github.com/deebee-tech/array-helper",
+   "license": "MIT",
+   "private": false,
+   "author": {
+      "name": "Sandy Weatherby",
+      "email": "unicornbeachdiaries@gmail.com"
+   },
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/deebee-tech/array-helper"
+   },
+   "type": "module",
+   "main": "dist/index.js",
+   "exports": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+   },
+   "types": "dist/index.d.ts",
+   "publishConfig": {
+      "access": "public"
+   },
+   "keywords": [
+      "array",
+      "lodash",
+      "underscore",
+      "helper"
+   ],
+   "scripts": {
+      "build": "rollup -c && cpy './package.json' './dist/' && cpy './README.md' './dist/' && cpy './CHANGELOG.md' './dist/'",
+      "test": "vitest --coverage"
+   },
+   "devDependencies": {
+      "@eslint/js": "^9.16.0",
+      "@sebbo2002/semantic-release-jsr": "^2.0.2",
+      "@semantic-release/changelog": "^6.0.3",
+      "@semantic-release/commit-analyzer": "^13.0.0",
+      "@semantic-release/git": "^10.0.1",
+      "@semantic-release/github": "^11.0.1",
+      "@semantic-release/npm": "^12.0.1",
+      "@semantic-release/release-notes-generator": "^14.0.1",
+      "@vitest/coverage-v8": "^2.1.8",
+      "cpy-cli": "^5.0.0",
+      "esbuild": "^0.24.0",
+      "eslint": "^9.16.0",
+      "eslint-config-prettier": "^9.1.0",
+      "prettier": "^3.4.2",
+      "rollup": "^4.28.0",
+      "rollup-plugin-dts": "^6.1.1",
+      "rollup-plugin-esbuild": "^6.1.1",
+      "semantic-release": "^24.2.0",
+      "semantic-release-replace-plugin": "^1.2.7",
+      "typescript": "^5.7.2",
+      "typescript-eslint": "^8.17.0",
+      "vitest": "^2.1.8"
+   }
+}
