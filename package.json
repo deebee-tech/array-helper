@@ -1,6 +1,6 @@
 {
    "name": "@deebeetech/array-helper",
-   "version": "1.1.0",
+   "version": "1.0.0",
    "description": "A small collection of extra methods for arrays that we mostly needed from LoDash and Underscore that we didn't want to carry the weight of those installs.",
    "homepage": "https://github.com/deebee-tech/array-helper",
    "license": "MIT",
