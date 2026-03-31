@@ -1,6 +1,6 @@
 {
    "name": "@deebeetech/array-helper",
-   "version": "1.0.0",
+   "version": "2.0.0",
    "description": "A small collection of extra methods for arrays that we mostly needed from LoDash and Underscore that we didn't want to carry the weight of those installs.",
    "homepage": "https://github.com/deebee-tech/array-helper",
    "license": "MIT",
@@ -14,15 +14,15 @@
       "url": "https://github.com/deebee-tech/array-helper"
    },
    "type": "module",
-   "main": "dist/index.mjs",
+   "main": "index.mjs",
    "exports": {
       ".": {
-         "types": "./dist/index.d.mts",
-         "import": "./dist/index.mjs",
-         "require": "./dist/index.cjs"
+         "types": "./index.d.mts",
+         "import": "./index.mjs",
+         "require": "./index.cjs"
       }
    },
-   "types": "dist/index.d.mts",
+   "types": "index.d.mts",
    "publishConfig": {
       "access": "public"
    },
@@ -51,15 +51,15 @@
       "@semantic-release/npm": "^13.1.5",
       "@semantic-release/release-notes-generator": "^14.1.0",
       "@vitest/coverage-v8": "^4.1.2",
-      "conventional-changelog-conventionalcommits": "^8.0.0",
+      "conventional-changelog-conventionalcommits": "^9.3.1",
       "cpy-cli": "^7.0.0",
-      "cspell": "^9.4.0",
+      "cspell": "^9.7.0",
       "eslint": "^10.1.0",
       "eslint-config-prettier": "^10.1.8",
       "prettier": "^3.8.1",
       "semantic-release": "^25.0.3",
       "semantic-release-replace-plugin": "^1.2.7",
-      "tsdown": "^0.21.5",
+      "tsdown": "^0.21.7",
       "typescript": "^5.9.3",
       "typescript-eslint": "^8.58.0",
       "vitest": "^4.1.2"

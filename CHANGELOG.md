@@ -1,3 +1,13 @@
+## [2.0.0](https://github.com/deebee-tech/array-helper/compare/v1.0.0...v2.0.0) (2026-03-31)
+
+### ⚠ BREAKING CHANGES
+
+* **helper:** Moved from static class to standard function exports.
+
+### Features
+
+* **helper:** Complete modernization ([173b6d9](https://github.com/deebee-tech/array-helper/commit/173b6d914c3a026842028774064930e9d8ac144c))
+
 # 1.0.0 (2025-07-16)
 
 
