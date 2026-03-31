@@ -1,4 +1,3 @@
-Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 //#region src/index.ts
 /** Return the unique values in an array, optionally deduplicated by a specific key. */
 function uniqBy(arr, key) {
@@ -28,7 +27,6 @@ function orderBy(arr, keys, directions) {
 	});
 }
 //#endregion
-exports.orderBy = orderBy;
-exports.uniqBy = uniqBy;
+export { orderBy, uniqBy };
 
-//# sourceMappingURL=index.cjs.map
+//# sourceMappingURL=index.mjs.map

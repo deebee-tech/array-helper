@@ -1,42 +1,43 @@
-/** Encapsulating class for all array-helpers.  All methods
- * below this are static so there does not need to be any
- * references to constructors.  This class is meant to be
- * used as a utility class for all helper methods dealing with
- * arrays and are mostly ports from LoDash and Underscore.
- * This class is not meant to be instantiated.
- */
-export default class ArrayHelper {
-   /*** Return the unique values in an array based off of a key. */
-   public static uniqBy<T>(arr: T[], key?: string): T[] {
-      if (key === undefined || key === null || key === "") {
-         return arr.filter((value, index, arr) => arr.findIndex((x) => value === x) === index);
-      }
-
-      return arr.filter(
-         (value, index, arr) => arr.findIndex((x) => value[key as keyof T] === x[key as keyof T]) === index,
-      );
+/** Return the unique values in an array, optionally deduplicated by a specific key. */
+export function uniqBy<T>(arr: T[], key?: keyof T): T[] {
+   if (key === undefined || key === null) {
+      return [...new Set(arr)];
    }
 
-   /*** Take in an array of keys and orders and re-order the entire array based on that input. */
-   public static orderBy<T>(arr: T[], keys: string[], directions: ("asc" | "desc")[]): T[] {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return arr.sort((a: any, b: any) => {
-         let i = 0;
-         let result = 0;
-         const length = keys.length;
+   const seen = new Map<T[keyof T], T>();
 
-         while (result === 0 && i < length) {
-            const key = keys[i];
-            const direction = directions[i];
+   for (const item of arr) {
+      const val = item[key];
 
-            result =
-               direction === "desc"
-                  ? b[key as keyof T].toString().localeCompare(a[key as keyof T].toString())
-                  : a[key as keyof T].toString().localeCompare(b[key as keyof T].toString());
-            i++;
+      if (!seen.has(val)) {
+         seen.set(val, item);
+      }
+   }
+
+   return [...seen.values()];
+}
+
+/** Sort an array by multiple keys and directions, returning a new array without mutating the original. */
+export function orderBy<T>(arr: T[], keys: (keyof T)[], directions: ("asc" | "desc")[]): T[] {
+   return arr.toSorted((a: T, b: T) => {
+      for (let i = 0; i < keys.length; i++) {
+         const key = keys[i];
+         const direction = directions[i] ?? "asc";
+         const aVal = a[key];
+         const bVal = b[key];
+
+         let result: number;
+
+         if (typeof aVal === "number" && typeof bVal === "number") {
+            result = aVal - bVal;
+         } else {
+            result = String(aVal).localeCompare(String(bVal));
          }
 
-         return result;
-      });
-   }
+         if (direction === "desc") result = -result;
+         if (result !== 0) return result;
+      }
+
+      return 0;
+   });
 }

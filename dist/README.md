@@ -1,35 +1,55 @@
 # Array Helper
 
-A small collection of extra methods for arrays that we mostly needed from
-LoDash and Underscore that we didn't want to carry the weight of those installs.
+Lightweight standalone array utility functions — the parts of LoDash and
+Underscore you actually need, without the weight.
 
-## Methods
+## Install
 
-- [Array Helper](#array-helper)
-   - [Methods](#methods)
-      - [orderBy](#orderby)
-      - [uniqBy](#uniqby)
+```bash
+npm install @deebeetech/array-helper
+```
+
+## Functions
+
+- [orderBy](#orderby)
+- [uniqBy](#uniqby)
 
 #### orderBy
 
-Take in an array of keys and orders and re-order the entire array based on that
-input.
+Sort an array by multiple keys and directions, returning a new array without
+mutating the original. Compares numbers numerically and everything else via
+`localeCompare`.
 
 ```typescript
-import { orderBy } from "@deebeetech/array-helpers";
-const array = [{ key1: "Hello" }, { key1: "Goodbye" }];
-orderBy(array, ["key1"], ["asc"]);
-// [{key1: "Goodbye"}, {key1: "Hello"}]
+import { orderBy } from "@deebeetech/array-helper";
+
+const users = [
+   { name: "John", age: 25 },
+   { name: "Jane", age: 30 },
+   { name: "John", age: 30 },
+];
+
+orderBy(users, ["name", "age"], ["asc", "desc"]);
+// [{ name: "Jane", age: 30 }, { name: "John", age: 30 }, { name: "John", age: 25 }]
 ```
 
 #### uniqBy
 
-Return the unique values in an array based off of a key.
+Return the unique values in an array, optionally deduplicated by a specific key.
+When called without a key, uses `Set` semantics (identity/value equality).
 
 ```typescript
-const array = [{ key1: "Hello" }, { key1: "Goodbye" }, { key1: "Hello" }];
-uniqBy(array, "key1");
-// [{key1: "Hello"}, {key1: "Goodbye"}]
-```
+import { uniqBy } from "@deebeetech/array-helper";
 
-For a full list of functions, see the [jsr.io documentation](https://jsr.io/@deebeetech/array-helper/doc/~/ArrayHelper)
+const users = [
+   { name: "John", age: 25 },
+   { name: "Jane", age: 30 },
+   { name: "John", age: 30 },
+];
+
+uniqBy(users, "name");
+// [{ name: "John", age: 25 }, { name: "Jane", age: 30 }]
+
+uniqBy([1, 2, 3, 2, 1]);
+// [1, 2, 3]
+```
