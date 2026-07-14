@@ -17,19 +17,41 @@ function normalize(value) {
 function isNil(value) {
 	return value === null || value === void 0 || typeof value === "number" && Number.isNaN(value);
 }
-/**
-* Nils sort last ascending, and `desc` simply negates that, so they lead a descending sort. That is
-* plain negation, and it matches Postgres's default NULLS LAST / NULLS FIRST behavior.
+/** Codepoint order is a total order fixed by the string itself, which is what `locale: false` buys:
+* a result that cannot vary with the machine's ICU data.
 */
-function compare(a, b) {
+function compareStrings(x, y, locale) {
+	if (locale) return x.localeCompare(y);
+	return x < y ? -1 : x > y ? 1 : 0;
+}
+/**
+* A nil is ranked either above every value or below every value, and `desc` negates that along with
+* everything else — so the placement is stated for an ascending sort and descending falls out of
+* plain negation, which is how the SQL dialects arrive at their own defaults.
+*/
+function compare(a, b, options) {
 	const x = normalize(a);
 	const y = normalize(b);
 	const xNil = isNil(x);
 	const yNil = isNil(y);
-	if (xNil || yNil) return xNil && yNil ? 0 : xNil ? 1 : -1;
+	if (xNil || yNil) {
+		const nil = options.nulls === "first" ? -1 : 1;
+		return xNil && yNil ? 0 : xNil ? nil : -nil;
+	}
 	if (typeof x === "number" && typeof y === "number") return x - y;
-	if (typeof x === "string" && typeof y === "string") return x.localeCompare(y);
-	return String(x).localeCompare(String(y));
+	if (typeof x === "string" && typeof y === "string") return compareStrings(x, y, options.locale);
+	return compareStrings(String(x), String(y), options.locale);
+}
+/**
+* Return the array without its nullish entries, narrowing `(T | null | undefined)[]` to `T[]` —
+* the narrowing `filter(Boolean)` still does not give you.
+*
+* Only `null` and `undefined` are dropped. `0`, `''`, `false`, and `NaN` are **kept**: dropping
+* every falsy value is a different operation with a different set of callers, and folding the two
+* together would silently discard the zeroes and empty strings someone meant to keep.
+*/
+function compact(arr) {
+	return arr.filter((item) => item !== null && item !== void 0);
 }
 /**
 * Return the unique values in an array, optionally deduplicated by a key or a derived value.
@@ -49,17 +71,24 @@ function uniqBy(arr, key) {
 * original. Each key is a property name or a function deriving the value to sort on, and directions
 * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
 * values sort last ascending.
+*
+* `options` refines the two comparisons that have no single right answer — see
+* {@link OrderByOptions} — leaving both alone to keep the sort as it was.
 */
-function orderBy(arr, keys, directions = []) {
+function orderBy(arr, keys, directions = [], options = {}) {
+	const resolved = {
+		nulls: options.nulls ?? "last",
+		locale: options.locale ?? true
+	};
 	return arr.toSorted((a, b) => {
 		for (let i = 0; i < keys.length; i++) {
-			const result = compare(select(a, keys[i]), select(b, keys[i]));
+			const result = compare(select(a, keys[i]), select(b, keys[i]), resolved);
 			if (result !== 0) return directions[i] === "desc" ? -result : result;
 		}
 		return 0;
 	});
 }
 //#endregion
-export { orderBy, uniqBy };
+export { compact, orderBy, uniqBy };
 
 //# sourceMappingURL=index.mjs.map

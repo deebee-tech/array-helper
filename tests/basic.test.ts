@@ -1,5 +1,57 @@
 import { describe, expect, it } from 'vitest';
-import { orderBy, uniqBy } from '../src';
+import { compact, orderBy, uniqBy } from '../src';
+
+describe('compact', () => {
+  it('should drop null and undefined', () => {
+    const arr = [1, null, 2, undefined, 3];
+
+    expect(compact(arr)).toEqual([1, 2, 3]);
+  });
+
+  it('should keep 0, empty string, and false, which are falsy but not nullish', () => {
+    // filter(Boolean) would throw all of these away; compact is scoped to nullish only.
+    expect(compact([0, null, 1])).toEqual([0, 1]);
+    expect(compact(['', undefined, 'a'])).toEqual(['', 'a']);
+    expect(compact([false, null, true])).toEqual([false, true]);
+  });
+
+  it('should keep NaN, which is a value even though the comparator treats it as nil', () => {
+    const result = compact([NaN, null, 1]);
+
+    expect(result).toHaveLength(2);
+    expect(Number.isNaN(result[0])).toBe(true);
+    expect(result[1]).toBe(1);
+  });
+
+  it('should narrow the element type, which filter(Boolean) does not', () => {
+    const names: (string | null | undefined)[] = ['Jane', null, 'John', undefined];
+
+    // Only compiles if compact returned string[] rather than (string | null | undefined)[].
+    const lengths: number[] = compact(names).map((n) => n.length);
+
+    expect(lengths).toEqual([4, 4]);
+  });
+
+  it('should accept a readonly array', () => {
+    const arr: readonly (number | null)[] = [1, null, 2] as const;
+
+    expect(compact(arr)).toEqual([1, 2]);
+  });
+
+  it('should return an empty array when every entry is nullish', () => {
+    expect(compact([null, undefined])).toEqual([]);
+    expect(compact([])).toEqual([]);
+  });
+
+  it('should not mutate the original array', () => {
+    const arr = [1, null, 2];
+    const original = [...arr];
+
+    compact(arr);
+
+    expect(arr).toEqual(original);
+  });
+});
 
 describe('uniqBy', () => {
   it('should return unique values based on a key', () => {
@@ -206,5 +258,189 @@ describe('comparison semantics', () => {
       'a:2026-02',
       'b:2026-01',
     ]);
+  });
+});
+
+describe('orderBy nulls option', () => {
+  const arr = [{ v: 'zebra' }, { v: null }, { v: 'apple' }, { v: undefined }];
+
+  it("should default to 'last', the behavior orderBy has always had", () => {
+    expect(orderBy(arr, ['v'], ['asc'], { nulls: 'last' }).map((r) => r.v)).toEqual(
+      orderBy(arr, ['v'], ['asc']).map((r) => r.v),
+    );
+    expect(orderBy(arr, ['v'], ['desc'], { nulls: 'last' }).map((r) => r.v)).toEqual(
+      orderBy(arr, ['v'], ['desc']).map((r) => r.v),
+    );
+  });
+
+  it("should sort nils last ascending and first descending with nulls: 'last' (Postgres)", () => {
+    expect(orderBy(arr, ['v'], ['asc'], { nulls: 'last' }).map((r) => r.v)).toEqual([
+      'apple',
+      'zebra',
+      null,
+      undefined,
+    ]);
+
+    expect(orderBy(arr, ['v'], ['desc'], { nulls: 'last' }).map((r) => r.v)).toEqual([
+      null,
+      undefined,
+      'zebra',
+      'apple',
+    ]);
+  });
+
+  it("should sort nils first ascending and last descending with nulls: 'first' (MSSQL/SQLite)", () => {
+    expect(orderBy(arr, ['v'], ['asc'], { nulls: 'first' }).map((r) => r.v)).toEqual([
+      null,
+      undefined,
+      'apple',
+      'zebra',
+    ]);
+
+    expect(orderBy(arr, ['v'], ['desc'], { nulls: 'first' }).map((r) => r.v)).toEqual([
+      'zebra',
+      'apple',
+      null,
+      undefined,
+    ]);
+  });
+
+  it('should place NaN and an Invalid Date with the nils, wherever those go', () => {
+    const nums = [{ v: 3 }, { v: NaN }, { v: 1 }];
+
+    expect(orderBy(nums, ['v'], ['asc'], { nulls: 'first' }).map((r) => r.v)).toEqual([NaN, 1, 3]);
+
+    const dates = [{ at: new Date('2026-01-05') }, { at: new Date('nonsense') }];
+    const sorted = orderBy(dates, ['at'], ['asc'], { nulls: 'first' });
+
+    expect(Number.isNaN(sorted[0].at.getTime())).toBe(true);
+    expect(sorted[1].at.toISOString().slice(0, 10)).toBe('2026-01-05');
+  });
+
+  it('should leave non-nil ordering untouched', () => {
+    const nums = [{ n: 3 }, { n: 1 }, { n: 2 }];
+
+    expect(orderBy(nums, ['n'], ['asc'], { nulls: 'first' })).toEqual([
+      { n: 1 },
+      { n: 2 },
+      { n: 3 },
+    ]);
+  });
+});
+
+describe('orderBy locale option', () => {
+  it('should order by codepoint with locale: false, where localeCompare disagrees on case', () => {
+    // localeCompare is case-insensitive-ish: it interleaves to a/A/b/B. Codepoints put every
+    // uppercase letter (65-90) below every lowercase one (97-122), so the two genuinely differ.
+    const arr = [{ v: 'b' }, { v: 'A' }, { v: 'a' }, { v: 'B' }];
+
+    expect(orderBy(arr, ['v']).map((r) => r.v)).toEqual(['a', 'A', 'b', 'B']);
+    expect(orderBy(arr, ['v'], ['asc'], { locale: false }).map((r) => r.v)).toEqual([
+      'A',
+      'B',
+      'a',
+      'b',
+    ]);
+  });
+
+  it('should order by codepoint with locale: false, where localeCompare disagrees on accents', () => {
+    // localeCompare files é next to e, so "émile" lands before "zebra". Its codepoint (U+00E9) is
+    // above every ASCII letter, so it sorts after.
+    const arr = [{ v: 'zebra' }, { v: 'émile' }, { v: 'apple' }];
+
+    expect(orderBy(arr, ['v']).map((r) => r.v)).toEqual(['apple', 'émile', 'zebra']);
+    expect(orderBy(arr, ['v'], ['asc'], { locale: false }).map((r) => r.v)).toEqual([
+      'apple',
+      'zebra',
+      'émile',
+    ]);
+  });
+
+  it('should default to localeCompare, the behavior orderBy has always had', () => {
+    const arr = [{ v: 'b' }, { v: 'A' }, { v: 'a' }, { v: 'B' }];
+
+    expect(orderBy(arr, ['v'], ['asc'], { locale: true }).map((r) => r.v)).toEqual(
+      orderBy(arr, ['v'], ['asc']).map((r) => r.v),
+    );
+  });
+
+  it('should apply codepoint order to the mixed-type fallback too', () => {
+    // The stringifying fallback is a canonicalization hazard in exactly the same way.
+    const arr = [{ v: 'a' }, { v: 'B' }, { v: 10 }];
+
+    expect(orderBy(arr, ['v'], ['asc'], { locale: false }).map((r) => r.v)).toEqual([10, 'B', 'a']);
+  });
+
+  it('should still negate under desc', () => {
+    const arr = [{ v: 'b' }, { v: 'A' }, { v: 'a' }, { v: 'B' }];
+
+    expect(orderBy(arr, ['v'], ['desc'], { locale: false }).map((r) => r.v)).toEqual([
+      'b',
+      'a',
+      'B',
+      'A',
+    ]);
+  });
+
+  it('should combine with nulls in one options object', () => {
+    const arr = [{ v: 'a' }, { v: null }, { v: 'B' }];
+
+    expect(orderBy(arr, ['v'], ['asc'], { nulls: 'first', locale: false }).map((r) => r.v)).toEqual(
+      [null, 'B', 'a'],
+    );
+  });
+
+  it('should report equal strings as tied, so a later key still breaks the tie', () => {
+    const arr = [
+      { group: 'a', n: 2 },
+      { group: 'a', n: 1 },
+    ];
+
+    expect(orderBy(arr, ['group', 'n'], ['asc', 'asc'], { locale: false })).toEqual([
+      { group: 'a', n: 1 },
+      { group: 'a', n: 2 },
+    ]);
+  });
+});
+
+describe('backward compatibility', () => {
+  it('should behave identically with the options object omitted, empty, or defaulted', () => {
+    const arr = [
+      { name: 'John', age: 25 },
+      { name: 'Jane', age: null },
+      { name: 'John', age: 30 },
+      { name: 'Jane', age: 25 },
+    ];
+
+    // The 3-arg call is the whole public surface as of 2.1.0; it has to keep meaning what it meant.
+    const legacy = orderBy(arr, ['name', 'age'], ['asc', 'desc']);
+
+    expect(orderBy(arr, ['name', 'age'], ['asc', 'desc'], {})).toEqual(legacy);
+    expect(orderBy(arr, ['name', 'age'], ['asc', 'desc'], { nulls: 'last', locale: true })).toEqual(
+      legacy,
+    );
+
+    expect(legacy).toEqual([
+      { name: 'Jane', age: null },
+      { name: 'Jane', age: 25 },
+      { name: 'John', age: 30 },
+      { name: 'John', age: 25 },
+    ]);
+  });
+
+  it('should still accept the 1- and 2-arg calls', () => {
+    const arr = [{ n: 3 }, { n: 1 }, { n: 2 }];
+
+    expect(orderBy(arr, ['n'])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+    expect(orderBy(arr, ['n'], [])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
+  });
+
+  it('should not mutate the original array when options are passed', () => {
+    const arr = [{ v: 'b' }, { v: null }, { v: 'a' }];
+    const original = [...arr];
+
+    orderBy(arr, ['v'], ['asc'], { nulls: 'first', locale: false });
+
+    expect(arr).toEqual(original);
   });
 });

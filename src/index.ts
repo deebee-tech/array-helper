@@ -1,6 +1,27 @@
 /** A property name, or a function deriving the value to key/sort on. */
 export type Key<T> = keyof T | ((item: T) => unknown);
 
+/** Options refining how {@link orderBy} compares values. Both are additive; the defaults are the
+ * behavior orderBy has always had.
+ */
+export interface OrderByOptions {
+  /**
+   * Where nullish values land in an *ascending* sort. `"desc"` negates it, exactly as it negates
+   * every other comparison, so `"last"` reproduces Postgres (NULLS LAST ascending, first
+   * descending) and `"first"` reproduces MSSQL and SQLite, which rank a null below every value.
+   * A dialect-agnostic sort has to be able to say which. Defaults to `"last"`.
+   */
+  nulls?: 'first' | 'last';
+  /**
+   * Whether strings compare with `localeCompare`. Set `false` to compare by codepoint instead.
+   * `localeCompare` is ICU- and locale-dependent, so the same two strings can order differently on
+   * two machines — fine for display, wrong for a canonicalizing sort whose output feeds a hash, a
+   * deep-equality check, or URL state, where a reshuffle reads as a change that never happened.
+   * Defaults to `true`.
+   */
+  locale?: boolean;
+}
+
 /** `keyof T` is always a string, number, or symbol — never a function — so this discriminates cleanly. */
 function select<T>(item: T, key: Key<T>): unknown {
   return typeof key === 'function' ? key(item) : item[key];
@@ -25,24 +46,51 @@ function isNil(value: unknown): boolean {
   );
 }
 
-/**
- * Nils sort last ascending, and `desc` simply negates that, so they lead a descending sort. That is
- * plain negation, and it matches Postgres's default NULLS LAST / NULLS FIRST behavior.
+/** Codepoint order is a total order fixed by the string itself, which is what `locale: false` buys:
+ * a result that cannot vary with the machine's ICU data.
  */
-function compare(a: unknown, b: unknown): number {
+function compareStrings(x: string, y: string, locale: boolean): number {
+  if (locale) return x.localeCompare(y);
+
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
+/**
+ * A nil is ranked either above every value or below every value, and `desc` negates that along with
+ * everything else — so the placement is stated for an ascending sort and descending falls out of
+ * plain negation, which is how the SQL dialects arrive at their own defaults.
+ */
+function compare(a: unknown, b: unknown, options: Required<OrderByOptions>): number {
   const x = normalize(a);
   const y = normalize(b);
 
   const xNil = isNil(x);
   const yNil = isNil(y);
 
-  if (xNil || yNil) return xNil && yNil ? 0 : xNil ? 1 : -1;
+  if (xNil || yNil) {
+    const nil = options.nulls === 'first' ? -1 : 1;
+
+    return xNil && yNil ? 0 : xNil ? nil : -nil;
+  }
 
   if (typeof x === 'number' && typeof y === 'number') return x - y;
-  if (typeof x === 'string' && typeof y === 'string') return x.localeCompare(y);
+  if (typeof x === 'string' && typeof y === 'string') return compareStrings(x, y, options.locale);
 
   // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
-  return String(x).localeCompare(String(y));
+  return compareStrings(String(x), String(y), options.locale);
+}
+
+/**
+ * Return the array without its nullish entries, narrowing `(T | null | undefined)[]` to `T[]` —
+ * the narrowing `filter(Boolean)` still does not give you.
+ *
+ * Only `null` and `undefined` are dropped. `0`, `''`, `false`, and `NaN` are **kept**: dropping
+ * every falsy value is a different operation with a different set of callers, and folding the two
+ * together would silently discard the zeroes and empty strings someone meant to keep.
+ */
+export function compact<T>(arr: readonly (T | null | undefined)[]): T[] {
+  // Not `isNil`, which folds NaN in for the sake of the comparator. NaN is a value; it stays.
+  return arr.filter((item): item is T => item !== null && item !== undefined);
 }
 
 /**
@@ -72,11 +120,24 @@ export function uniqBy<T>(arr: T[], key?: Key<T>): T[] {
  * original. Each key is a property name or a function deriving the value to sort on, and directions
  * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
  * values sort last ascending.
+ *
+ * `options` refines the two comparisons that have no single right answer — see
+ * {@link OrderByOptions} — leaving both alone to keep the sort as it was.
  */
-export function orderBy<T>(arr: T[], keys: Key<T>[], directions: ('asc' | 'desc')[] = []): T[] {
+export function orderBy<T>(
+  arr: T[],
+  keys: Key<T>[],
+  directions: ('asc' | 'desc')[] = [],
+  options: OrderByOptions = {},
+): T[] {
+  const resolved: Required<OrderByOptions> = {
+    nulls: options.nulls ?? 'last',
+    locale: options.locale ?? true,
+  };
+
   return arr.toSorted((a: T, b: T) => {
     for (let i = 0; i < keys.length; i++) {
-      const result = compare(select(a, keys[i]), select(b, keys[i]));
+      const result = compare(select(a, keys[i]), select(b, keys[i]), resolved);
 
       if (result !== 0) {
         return directions[i] === 'desc' ? -result : result;
