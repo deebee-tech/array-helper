@@ -27,15 +27,15 @@ Sort an array by multiple keys and directions, returning a new array without
 mutating the original. Directions default to `"asc"`.
 
 ```typescript
-import { orderBy } from "@deebeetech/array-helper";
+import { orderBy } from '@deebeetech/array-helper';
 
 const users = [
-   { name: "John", age: 25 },
-   { name: "Jane", age: 30 },
-   { name: "John", age: 30 },
+  { name: 'John', age: 25 },
+  { name: 'Jane', age: 30 },
+  { name: 'John', age: 30 },
 ];
 
-orderBy(users, ["name", "age"], ["asc", "desc"]);
+orderBy(users, ['name', 'age'], ['asc', 'desc']);
 // [{ name: "Jane", age: 30 }, { name: "John", age: 30 }, { name: "John", age: 25 }]
 ```
 
@@ -45,7 +45,7 @@ isn't a property — a rank lookup, a parsed date, a computed label:
 ```typescript
 const rank = { high: 0, medium: 1, low: 2 };
 
-orderBy(tickets, [(t) => rank[t.status], "createdAt"], ["asc", "desc"]);
+orderBy(tickets, [(t) => rank[t.status], 'createdAt'], ['asc', 'desc']);
 ```
 
 Values compare as themselves rather than as strings:
@@ -69,15 +69,15 @@ first occurrence of each distinct value wins. Called without a key, it uses
 `Set` semantics (identity/value equality).
 
 ```typescript
-import { uniqBy } from "@deebeetech/array-helper";
+import { uniqBy } from '@deebeetech/array-helper';
 
 const users = [
-   { name: "John", age: 25 },
-   { name: "Jane", age: 30 },
-   { name: "John", age: 30 },
+  { name: 'John', age: 25 },
+  { name: 'Jane', age: 30 },
+  { name: 'John', age: 30 },
 ];
 
-uniqBy(users, "name");
+uniqBy(users, 'name');
 // [{ name: "John", age: 25 }, { name: "Jane", age: 30 }]
 
 uniqBy([1, 2, 3, 2, 1]);

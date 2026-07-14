@@ -149,7 +149,9 @@
 <a name='L84'></a><a href='#L84'>84</a>
 <a name='L85'></a><a href='#L85'>85</a>
 <a name='L86'></a><a href='#L86'>86</a>
-<a name='L87'></a><a href='#L87'>87</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -172,6 +174,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">118x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -240,15 +244,15 @@ export type Key&lt;T&gt; = keyof T | ((item: T) =&gt; unknown);
 &nbsp;
 /** `keyof T` is always a string, number, or symbol — never a function — so this discriminates cleanly. */
 function select&lt;T&gt;(item: T, key: Key&lt;T&gt;): unknown {
-   return typeof key === "function" ? key(item) : item[key];
+  return typeof key === 'function' ? key(item) : item[key];
 }
 &nbsp;
 /** Dates compare as epoch ms and booleans as 0/1, so both sort as the primitives they stand for. */
 function normalize(value: unknown): unknown {
-   if (value instanceof Date) return value.getTime();
-   if (typeof value === "boolean") return value ? 1 : 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'boolean') return value ? 1 : 0;
 &nbsp;
-   return value;
+  return value;
 }
 &nbsp;
 /**
@@ -257,7 +261,9 @@ function normalize(value: unknown): unknown {
  * sort arbitrarily.
  */
 function isNil(value: unknown): boolean {
-   return value === null || value === undefined || (typeof value === "number" &amp;&amp; Number.isNaN(value));
+  return (
+    value === null || value === undefined || (typeof value === 'number' &amp;&amp; Number.isNaN(value))
+  );
 }
 &nbsp;
 /**
@@ -265,19 +271,19 @@ function isNil(value: unknown): boolean {
  * plain negation, and it matches Postgres's default NULLS LAST / NULLS FIRST behavior.
  */
 function compare(a: unknown, b: unknown): number {
-   const x = normalize(a);
-   const y = normalize(b);
+  const x = normalize(a);
+  const y = normalize(b);
 &nbsp;
-   const xNil = isNil(x);
-   const yNil = isNil(y);
+  const xNil = isNil(x);
+  const yNil = isNil(y);
 &nbsp;
-   if (xNil || yNil) return xNil &amp;&amp; yNil ? 0 : xNil ? 1 : -1;
+  if (xNil || yNil) return xNil &amp;&amp; yNil ? 0 : xNil ? 1 : -1;
 &nbsp;
-   if (typeof x === "number" &amp;&amp; typeof y === "number") return x - y;
-   if (typeof x === "string" &amp;&amp; typeof y === "string") return x.localeCompare(y);
+  if (typeof x === 'number' &amp;&amp; typeof y === 'number') return x - y;
+  if (typeof x === 'string' &amp;&amp; typeof y === 'string') return x.localeCompare(y);
 &nbsp;
-   // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
-   return String(x).localeCompare(String(y));
+  // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
+  return String(x).localeCompare(String(y));
 }
 &nbsp;
 /**
@@ -285,21 +291,21 @@ function compare(a: unknown, b: unknown): number {
  * The first occurrence of each distinct value wins.
  */
 export function uniqBy&lt;T&gt;(arr: T[], key?: Key&lt;T&gt;): T[] {
-   if (key === undefined || key === null) {
-      return [...new Set(arr)];
-   }
+  if (key === undefined || key === null) {
+    return [...new Set(arr)];
+  }
 &nbsp;
-   const seen = new Map&lt;unknown, T&gt;();
+  const seen = new Map&lt;unknown, T&gt;();
 &nbsp;
-   for (const item of arr) {
-      const val = select(item, key);
+  for (const item of arr) {
+    const val = select(item, key);
 &nbsp;
-      if (!seen.has(val)) {
-         seen.set(val, item);
-      }
-   }
+    if (!seen.has(val)) {
+      seen.set(val, item);
+    }
+  }
 &nbsp;
-   return [...seen.values()];
+  return [...seen.values()];
 }
 &nbsp;
 /**
@@ -308,18 +314,18 @@ export function uniqBy&lt;T&gt;(arr: T[], key?: Key&lt;T&gt;): T[] {
  * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
  * values sort last ascending.
  */
-export function orderBy&lt;T&gt;(arr: T[], keys: Key&lt;T&gt;[], directions: ("asc" | "desc")[] = []): T[] {
-   return arr.toSorted((a: T, b: T) =&gt; {
-      for (let i = 0; i &lt; keys.length; i++) {
-         const result = compare(select(a, keys[i]), select(b, keys[i]));
+export function orderBy&lt;T&gt;(arr: T[], keys: Key&lt;T&gt;[], directions: ('asc' | 'desc')[] = []): T[] {
+  return arr.toSorted((a: T, b: T) =&gt; {
+    for (let i = 0; i &lt; keys.length; i++) {
+      const result = compare(select(a, keys[i]), select(b, keys[i]));
 &nbsp;
-         if (result !== 0) {
-            return directions[i] === "desc" ? -result : result;
-         }
+      if (result !== 0) {
+        return directions[i] === 'desc' ? -result : result;
       }
+    }
 &nbsp;
-      return 0;
-   });
+    return 0;
+  });
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -328,7 +334,7 @@ export function orderBy&lt;T&gt;(arr: T[], keys: Key&lt;T&gt;[], directions: ("a
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-14T17:37:32.298Z
+                at 2026-07-14T17:43:22.399Z
             </div>
         <script src="prettify.js"></script>
         <script>

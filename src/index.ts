@@ -3,15 +3,15 @@ export type Key<T> = keyof T | ((item: T) => unknown);
 
 /** `keyof T` is always a string, number, or symbol — never a function — so this discriminates cleanly. */
 function select<T>(item: T, key: Key<T>): unknown {
-   return typeof key === "function" ? key(item) : item[key];
+  return typeof key === 'function' ? key(item) : item[key];
 }
 
 /** Dates compare as epoch ms and booleans as 0/1, so both sort as the primitives they stand for. */
 function normalize(value: unknown): unknown {
-   if (value instanceof Date) return value.getTime();
-   if (typeof value === "boolean") return value ? 1 : 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'boolean') return value ? 1 : 0;
 
-   return value;
+  return value;
 }
 
 /**
@@ -20,7 +20,9 @@ function normalize(value: unknown): unknown {
  * sort arbitrarily.
  */
 function isNil(value: unknown): boolean {
-   return value === null || value === undefined || (typeof value === "number" && Number.isNaN(value));
+  return (
+    value === null || value === undefined || (typeof value === 'number' && Number.isNaN(value))
+  );
 }
 
 /**
@@ -28,19 +30,19 @@ function isNil(value: unknown): boolean {
  * plain negation, and it matches Postgres's default NULLS LAST / NULLS FIRST behavior.
  */
 function compare(a: unknown, b: unknown): number {
-   const x = normalize(a);
-   const y = normalize(b);
+  const x = normalize(a);
+  const y = normalize(b);
 
-   const xNil = isNil(x);
-   const yNil = isNil(y);
+  const xNil = isNil(x);
+  const yNil = isNil(y);
 
-   if (xNil || yNil) return xNil && yNil ? 0 : xNil ? 1 : -1;
+  if (xNil || yNil) return xNil && yNil ? 0 : xNil ? 1 : -1;
 
-   if (typeof x === "number" && typeof y === "number") return x - y;
-   if (typeof x === "string" && typeof y === "string") return x.localeCompare(y);
+  if (typeof x === 'number' && typeof y === 'number') return x - y;
+  if (typeof x === 'string' && typeof y === 'string') return x.localeCompare(y);
 
-   // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
-   return String(x).localeCompare(String(y));
+  // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
+  return String(x).localeCompare(String(y));
 }
 
 /**
@@ -48,21 +50,21 @@ function compare(a: unknown, b: unknown): number {
  * The first occurrence of each distinct value wins.
  */
 export function uniqBy<T>(arr: T[], key?: Key<T>): T[] {
-   if (key === undefined || key === null) {
-      return [...new Set(arr)];
-   }
+  if (key === undefined || key === null) {
+    return [...new Set(arr)];
+  }
 
-   const seen = new Map<unknown, T>();
+  const seen = new Map<unknown, T>();
 
-   for (const item of arr) {
-      const val = select(item, key);
+  for (const item of arr) {
+    const val = select(item, key);
 
-      if (!seen.has(val)) {
-         seen.set(val, item);
-      }
-   }
+    if (!seen.has(val)) {
+      seen.set(val, item);
+    }
+  }
 
-   return [...seen.values()];
+  return [...seen.values()];
 }
 
 /**
@@ -71,16 +73,16 @@ export function uniqBy<T>(arr: T[], key?: Key<T>): T[] {
  * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
  * values sort last ascending.
  */
-export function orderBy<T>(arr: T[], keys: Key<T>[], directions: ("asc" | "desc")[] = []): T[] {
-   return arr.toSorted((a: T, b: T) => {
-      for (let i = 0; i < keys.length; i++) {
-         const result = compare(select(a, keys[i]), select(b, keys[i]));
+export function orderBy<T>(arr: T[], keys: Key<T>[], directions: ('asc' | 'desc')[] = []): T[] {
+  return arr.toSorted((a: T, b: T) => {
+    for (let i = 0; i < keys.length; i++) {
+      const result = compare(select(a, keys[i]), select(b, keys[i]));
 
-         if (result !== 0) {
-            return directions[i] === "desc" ? -result : result;
-         }
+      if (result !== 0) {
+        return directions[i] === 'desc' ? -result : result;
       }
+    }
 
-      return 0;
-   });
+    return 0;
+  });
 }

@@ -12,7 +12,7 @@ declare function uniqBy<T>(arr: T[], key?: Key<T>): T[];
  * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
  * values sort last ascending.
  */
-declare function orderBy<T>(arr: T[], keys: Key<T>[], directions?: ("asc" | "desc")[]): T[];
+declare function orderBy<T>(arr: T[], keys: Key<T>[], directions?: ('asc' | 'desc')[]): T[];
 //#endregion
 export { Key, orderBy, uniqBy };
 //# sourceMappingURL=index.d.mts.map

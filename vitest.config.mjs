@@ -1,31 +1,31 @@
-import { configDefaults, defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
-   test: {
-      globals: true,
-      coverage: {
-         reporter: ["text", "html"],
-         exclude: [
-            ...configDefaults.exclude,
-            "tests/*",
-            "dist/*",
-            "coverage/*",
-            ".prettierrc.mjs",
-            "eslint.config.mjs",
-            "release.config.mjs",
-            "tsdown.config.ts",
-            "vitest.config.mjs",
-         ],
-      },
+  test: {
+    globals: true,
+    coverage: {
+      reporter: ['text', 'html'],
       exclude: [
-         ...configDefaults.exclude,
-         "dist/*",
-         "coverage/*",
-         ".prettierrc.mjs",
-         "eslint.config.mjs",
-         "release.config.mjs",
-         "tsdown.config.ts",
-         "vitest.config.mjs",
+        ...configDefaults.exclude,
+        'tests/*',
+        'dist/*',
+        'coverage/*',
+        '.prettierrc.mjs',
+        'eslint.config.mjs',
+        'release.config.mjs',
+        'tsdown.config.ts',
+        'vitest.config.mjs',
       ],
-   },
+    },
+    exclude: [
+      ...configDefaults.exclude,
+      'dist/*',
+      'coverage/*',
+      '.prettierrc.mjs',
+      'eslint.config.mjs',
+      'release.config.mjs',
+      'tsdown.config.ts',
+      'vitest.config.mjs',
+    ],
+  },
 });
