@@ -2,6 +2,17 @@
    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
    "version": "0.2",
    "language": "en",
-   "words": ["codepaths", "deebeetech", "esbuild", "sebbo", "tsbuildinfo", "tseslint", "Weatherby"],
+   "words": [
+      "codepaths",
+      "deebeetech",
+      "esbuild",
+      "iteratee",
+      "iteratees",
+      "sebbo",
+      "stringifying",
+      "tsbuildinfo",
+      "tseslint",
+      "Weatherby"
+   ],
    "ignorePaths": ["node_modules", "dist", "coverage", "pnpm-lock.yaml", "**/*.map"]
 }
