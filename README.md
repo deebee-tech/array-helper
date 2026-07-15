@@ -1,7 +1,14 @@
-# Array Helper
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/deebee-tech/array-helper/main/assets/array-helper-lockup-dark.svg">
+    <img alt="Array Helper" src="https://raw.githubusercontent.com/deebee-tech/array-helper/main/assets/array-helper-lockup-light.svg" width="393">
+  </picture>
+</p>
 
 Lightweight standalone array utility functions — the parts of LoDash and
 Underscore you actually need, without the weight.
+
+Part of the [DeeBee](https://github.com/deebee-tech) ecosystem.
 
 ## Install
 
