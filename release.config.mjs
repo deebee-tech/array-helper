@@ -52,8 +52,11 @@ export default {
               {
                 file: './dist/package.json',
                 hasChanged: true,
-                numMatches: 5,
-                numReplacements: 5,
+                // Must equal the `dist/index` count in package.json (main + types + the
+                // four nested exports conditions). The plugin asserts it and fails the
+                // release on a mismatch, so it changes whenever the exports map does.
+                numMatches: 6,
+                numReplacements: 6,
               },
             ],
             countMatches: true,

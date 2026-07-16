@@ -14,12 +14,17 @@
     "url": "https://github.com/deebee-tech/array-helper"
   },
   "type": "module",
-  "main": "dist/index.mjs",
+  "main": "dist/index.cjs",
   "exports": {
     ".": {
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "types": "dist/index.d.mts",
@@ -50,6 +55,7 @@
     "@semantic-release/github": "^12.0.9",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
+    "@types/node": "^26.1.1",
     "@vitest/coverage-v8": "^4.1.10",
     "conventional-changelog-conventionalcommits": "^10.2.1",
     "cpy-cli": "^7.0.0",
