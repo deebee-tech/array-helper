@@ -22,12 +22,14 @@ export default {
         preset: 'conventionalcommits',
       },
     ],
-    [
-      '@semantic-release/release-notes-generator',
-      {
-        preset: 'conventionalcommits',
-      },
-    ],
+    // NO `preset` here, deliberately. Pointing this at 'conventionalcommits' resolves the
+    // top-level conventional-changelog-conventionalcommits (v10), whose new
+    // `{commits, parser, writer, whatBump}` export shape this plugin's bundled
+    // conventional-changelog-writer@8 cannot read -- it silently rendered every release from
+    // 2.1.0 onward as a bare header with no body, hiding what those releases changed.
+    // Omitting it uses the writer's own version-locked angular preset, which parses `feat!:`
+    // and renders the breaking body. tests/release-notes.test.ts pins this.
+    '@semantic-release/release-notes-generator',
     [
       '@semantic-release/changelog',
       {
