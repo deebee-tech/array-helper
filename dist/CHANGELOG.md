@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/deebee-tech/array-helper/compare/v2.2.1...v2.2.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* resolve CJS types per lane so node16 consumers stop hitting TS1479 ([2dca03d](https://github.com/deebee-tech/array-helper/commit/2dca03d68d9d44f68783736f1672c9fb206d47fc))
+
 ## [2.2.1](https://github.com/deebee-tech/array-helper/compare/v2.2.0...v2.2.1) (2026-07-15)
 
 ## [2.2.0](https://github.com/deebee-tech/array-helper/compare/v2.1.0...v2.2.0) (2026-07-14)
