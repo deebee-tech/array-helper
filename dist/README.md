@@ -96,8 +96,8 @@ Values compare as themselves rather than as strings:
 | `null`/`undefined` | last ascending, first descending (Postgres NULLS LAST) |
 | mixed              | falls back to string comparison                        |
 
-`NaN` and an Invalid Date sort with the nullish values, so they can never return
-`NaN` from the comparator and scramble the result.
+`NaN` and an Invalid Date sort with the nullish values, rather than comparing
+equal to everything and scrambling the result.
 
 ##### Options
 

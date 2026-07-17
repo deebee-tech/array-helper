@@ -37,8 +37,8 @@ function normalize(value: unknown): unknown {
 
 /**
  * Nullish values and NaN have no meaningful position in an ordering. NaN is folded in here so that
- * an Invalid Date — whose getTime() is NaN — can never return NaN from the comparator, which would
- * sort arbitrarily.
+ * an Invalid Date — whose getTime() is NaN — ranks with the nils instead of comparing equal to
+ * every value, which is what a NaN out of the comparator would mean.
  */
 function isNil(value: unknown): boolean {
   return (
@@ -73,7 +73,9 @@ function compare(a: unknown, b: unknown, options: Required<OrderByOptions>): num
     return xNil && yNil ? 0 : xNil ? nil : -nil;
   }
 
-  if (typeof x === 'number' && typeof y === 'number') return x - y;
+  // Not `x - y`: Infinity - Infinity is NaN, and a NaN here reads as `result !== 0` in orderBy's
+  // key loop, which would return early and drop every remaining tiebreak key.
+  if (typeof x === 'number' && typeof y === 'number') return x < y ? -1 : x > y ? 1 : 0;
   if (typeof x === 'string' && typeof y === 'string') return compareStrings(x, y, options.locale);
 
   // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.

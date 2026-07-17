@@ -238,6 +238,43 @@ describe('comparison semantics', () => {
     expect(orderBy(arr, ['done']).map((r) => r.done)).toEqual([false, true, true]);
   });
 
+  it('should still tie-break when an earlier numeric key ties on Infinity', () => {
+    // `x - y` would make this NaN, and `NaN !== 0` reads as "decided" in the key loop, returning
+    // early and dropping `id` entirely. Single-key sorts survive that (the spec coerces NaN to +0),
+    // so only a tie-break pins it. Infinity is the ordinary sentinel for "unranked"/"no limit".
+    const arr = [
+      { n: Infinity, id: 3 },
+      { n: Infinity, id: 1 },
+      { n: Infinity, id: 2 },
+    ];
+
+    expect(orderBy(arr, ['n', 'id']).map((r) => r.id)).toEqual([1, 2, 3]);
+  });
+
+  it('should tie-break on -Infinity too, and only after the finite values', () => {
+    const arr = [
+      { n: -Infinity, id: 3 },
+      { n: -Infinity, id: 1 },
+    ];
+
+    expect(orderBy(arr, ['n', 'id']).map((r) => r.id)).toEqual([1, 3]);
+
+    const mixed = [
+      { n: 1, id: 9 },
+      { n: Infinity, id: 5 },
+      { n: Infinity, id: 2 },
+    ];
+
+    expect(orderBy(mixed, ['n', 'id']).map((r) => r.id)).toEqual([9, 2, 5]);
+  });
+
+  it('should order infinities against finite values and each other', () => {
+    const arr = [{ n: Infinity }, { n: 0 }, { n: -Infinity }];
+
+    expect(orderBy(arr, ['n']).map((r) => r.n)).toEqual([-Infinity, 0, Infinity]);
+    expect(orderBy(arr, ['n'], ['desc']).map((r) => r.n)).toEqual([Infinity, 0, -Infinity]);
+  });
+
   it('should fall back to string comparison for mixed types', () => {
     const arr = [{ v: '10' }, { v: 9 }];
 

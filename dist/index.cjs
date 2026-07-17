@@ -12,8 +12,8 @@ function normalize(value) {
 }
 /**
 * Nullish values and NaN have no meaningful position in an ordering. NaN is folded in here so that
-* an Invalid Date — whose getTime() is NaN — can never return NaN from the comparator, which would
-* sort arbitrarily.
+* an Invalid Date — whose getTime() is NaN — ranks with the nils instead of comparing equal to
+* every value, which is what a NaN out of the comparator would mean.
 */
 function isNil(value) {
 	return value === null || value === void 0 || typeof value === "number" && Number.isNaN(value);
@@ -39,7 +39,7 @@ function compare(a, b, options) {
 		const nil = options.nulls === "first" ? -1 : 1;
 		return xNil && yNil ? 0 : xNil ? nil : -nil;
 	}
-	if (typeof x === "number" && typeof y === "number") return x - y;
+	if (typeof x === "number" && typeof y === "number") return x < y ? -1 : x > y ? 1 : 0;
 	if (typeof x === "string" && typeof y === "string") return compareStrings(x, y, options.locale);
 	return compareStrings(String(x), String(y), options.locale);
 }
