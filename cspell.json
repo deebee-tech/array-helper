@@ -10,10 +10,13 @@
     "émile",
     "iteratee",
     "iteratees",
+    "Michroma",
     "sebbo",
+    "Segoe",
     "stringifying",
     "tsbuildinfo",
     "tseslint",
+    "unranked",
     "Weatherby"
   ],
   "ignorePaths": ["node_modules", "dist", "coverage", "pnpm-lock.yaml", "**/*.map"]
