@@ -20,6 +20,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
       - run: pnpm run lint
-      - run: pnpm run format
+      # `format`, not `format:check`, exited 0 no matter what: --write rewrites the runner's
+      # checkout and throws the result away at teardown. eslint-config-prettier disables the
+      # stylistic rules that might otherwise have caught it, so nothing backstopped this.
+      - run: pnpm run format:check
+      - run: pnpm run spell
       - run: pnpm run test
       - run: pnpm run build

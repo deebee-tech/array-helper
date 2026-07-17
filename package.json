@@ -40,6 +40,7 @@
   "scripts": {
     "build": "tsdown && cpy './package.json' './dist/' && cpy './README.md' './dist/' && cpy './CHANGELOG.md' './dist/' && cpy './LICENSE' './dist/'",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "spell": "cspell --no-progress \"**\"",
     "test": "vitest --coverage",
