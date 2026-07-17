@@ -1,0 +1,26 @@
+version: 2
+
+updates:
+  # The workflows pin actions to full commit SHAs, which is the point -- a git tag is mutable, and
+  # release.yaml runs actions in the same job as NPM_TOKEN and id-token: write. A SHA cannot be
+  # bumped by reading it, so without this the pins silently rot into stale, unpatched versions.
+  # Dependabot rewrites the SHA and the trailing `# vX.Y.Z` comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      # `chore(deps)` cuts no release, which is correct: every dependency here is a devDependency,
+      # so none of it reaches a consumer's install.
+      prefix: chore
+      include: scope
+    groups:
+      dev-dependencies:
+        patterns: ['*']
