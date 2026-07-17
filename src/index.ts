@@ -11,7 +11,7 @@ export interface OrderByOptions {
    * descending) and `"first"` reproduces MSSQL and SQLite, which rank a null below every value.
    * A dialect-agnostic sort has to be able to say which. Defaults to `"last"`.
    */
-  nulls?: 'first' | 'last';
+  nulls?: 'first' | 'last' | undefined;
   /**
    * Whether strings compare with `localeCompare`. Set `false` to compare by codepoint instead.
    * `localeCompare` is ICU- and locale-dependent, so the same two strings can order differently on
@@ -19,7 +19,18 @@ export interface OrderByOptions {
    * deep-equality check, or URL state, where a reshuffle reads as a change that never happened.
    * Defaults to `true`.
    */
-  locale?: boolean;
+  locale?: boolean | undefined;
+}
+
+/**
+ * `OrderByOptions` once defaulted. Spelled out rather than `Required<OrderByOptions>`, which strips
+ * the `| undefined` the options above declare — but only until a consumer compiles us under
+ * `exactOptionalPropertyTypes`, where it stops stripping and every read of `options.locale` widens
+ * to `boolean | undefined`.
+ */
+interface ResolvedOptions {
+  nulls: 'first' | 'last';
+  locale: boolean;
 }
 
 /** `keyof T` is always a string, number, or symbol — never a function — so this discriminates cleanly. */
@@ -60,7 +71,7 @@ function compareStrings(x: string, y: string, locale: boolean): number {
  * everything else — so the placement is stated for an ascending sort and descending falls out of
  * plain negation, which is how the SQL dialects arrive at their own defaults.
  */
-function compare(a: unknown, b: unknown, options: Required<OrderByOptions>): number {
+function compare(a: unknown, b: unknown, options: ResolvedOptions): number {
   const x = normalize(a);
   const y = normalize(b);
 
@@ -74,8 +85,10 @@ function compare(a: unknown, b: unknown, options: Required<OrderByOptions>): num
   }
 
   // Not `x - y`: Infinity - Infinity is NaN, and a NaN here reads as `result !== 0` in orderBy's
-  // key loop, which would return early and drop every remaining tiebreak key.
+  // key loop, which would return early and drop every remaining tiebreak key. Subtracting bigints
+  // is worse still — it returns a bigint, which is not a valid comparator result at all.
   if (typeof x === 'number' && typeof y === 'number') return x < y ? -1 : x > y ? 1 : 0;
+  if (typeof x === 'bigint' && typeof y === 'bigint') return x < y ? -1 : x > y ? 1 : 0;
   if (typeof x === 'string' && typeof y === 'string') return compareStrings(x, y, options.locale);
 
   // Mixed or exotic types: stringify. Deliberately last, so it cannot swallow the cases above.
@@ -99,7 +112,10 @@ export function compact<T>(arr: readonly (T | null | undefined)[]): T[] {
  * Return the unique values in an array, optionally deduplicated by a key or a derived value.
  * The first occurrence of each distinct value wins.
  */
-export function uniqBy<T>(arr: T[], key?: Key<T>): T[] {
+export function uniqBy<T>(arr: readonly T[], key?: Key<T>): T[] {
+  // `=== null` is deliberate and is not dead code, though TypeScript alone can never reach it.
+  // A JS caller passing null would otherwise land in select(), where `item[null]` is `undefined`
+  // for every element, collapsing the whole array to one entry. Loud identity beats silent loss.
   if (key === undefined || key === null) {
     return [...new Set(arr)];
   }
@@ -127,17 +143,20 @@ export function uniqBy<T>(arr: T[], key?: Key<T>): T[] {
  * {@link OrderByOptions} — leaving both alone to keep the sort as it was.
  */
 export function orderBy<T>(
-  arr: T[],
-  keys: Key<T>[],
-  directions: ('asc' | 'desc')[] = [],
+  arr: readonly T[],
+  keys: readonly Key<T>[],
+  directions: readonly ('asc' | 'desc')[] = [],
   options: OrderByOptions = {},
 ): T[] {
-  const resolved: Required<OrderByOptions> = {
+  const resolved: ResolvedOptions = {
     nulls: options.nulls ?? 'last',
     locale: options.locale ?? true,
   };
 
-  return arr.toSorted((a: T, b: T) => {
+  // `[...arr].sort()`, not `arr.toSorted()`: identical semantics (both copy, both stable, both
+  // hoist undefined without consulting the comparator), but toSorted is ES2023 and ships without
+  // a polyfill into whatever bundles us. `engines` would only ever cover the npm lane.
+  return [...arr].sort((a: T, b: T) => {
     for (let i = 0; i < keys.length; i++) {
       const result = compare(select(a, keys[i]), select(b, keys[i]), resolved);
 

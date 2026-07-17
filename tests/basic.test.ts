@@ -75,6 +75,12 @@ describe('uniqBy', () => {
     expect(uniqBy(arr)).toEqual([1, 2, 3, 4]);
   });
 
+  it('should accept a readonly array', () => {
+    const arr: readonly { n: number }[] = [{ n: 1 }, { n: 1 }, { n: 2 }];
+
+    expect(uniqBy(arr, 'n')).toEqual([{ n: 1 }, { n: 2 }]);
+  });
+
   it('should return all objects when no key is provided (unique references)', () => {
     const arr = [
       { name: 'John', age: 25 },
@@ -163,6 +169,19 @@ describe('orderBy', () => {
 
     expect(orderBy(arr, ['n'])).toEqual([{ n: 1 }, { n: 2 }, { n: 3 }]);
   });
+
+  it('should accept a readonly array, readonly keys, and readonly directions', () => {
+    // None of the three is mutated, so none of them should demand write access. `as const` and
+    // frozen state containers hand you exactly these types.
+    const arr: readonly { name: string; age: number }[] = [
+      { name: 'John', age: 25 },
+      { name: 'Jane', age: 30 },
+    ];
+    const keys = ['name', 'age'] as const;
+    const directions = ['asc', 'desc'] as const;
+
+    expect(orderBy(arr, keys, directions).map((r) => r.name)).toEqual(['Jane', 'John']);
+  });
 });
 
 describe('iteratees', () => {
@@ -236,6 +255,56 @@ describe('comparison semantics', () => {
     const arr = [{ done: true }, { done: false }, { done: true }];
 
     expect(orderBy(arr, ['done']).map((r) => r.done)).toEqual([false, true, true]);
+  });
+
+  it('should rank booleans as 0/1 against numbers, not as their string form', () => {
+    // The false-before-true test above passes even with normalize()'s boolean branch deleted:
+    // String(false) < String(true) under both collations, so it cannot fail. Mixing booleans with
+    // numbers is where 0/1 and "false"/"true" actually diverge, so this is what pins the contract.
+    expect(orderBy([{ v: 2 }, { v: true }, { v: 0 }], ['v']).map((r) => r.v)).toEqual([0, true, 2]);
+    expect(orderBy([{ v: false }, { v: 0.5 }, { v: true }], ['v']).map((r) => r.v)).toEqual([
+      false,
+      0.5,
+      true,
+    ]);
+  });
+
+  it('should sort bigints numerically, not lexicographically', () => {
+    // `typeof 10n` is 'bigint', not 'number', so these used to miss the numeric branch entirely
+    // and stringify: "10" < "9". int8 columns and snowflake IDs deserialize to exactly this.
+    const arr = [{ cents: 10n }, { cents: 9n }, { cents: 2n }];
+
+    expect(orderBy(arr, ['cents']).map((r) => r.cents)).toEqual([2n, 9n, 10n]);
+    expect(orderBy(arr, ['cents'], ['desc']).map((r) => r.cents)).toEqual([10n, 9n, 2n]);
+
+    // Already in order: sorting is a no-op rather than a reshuffle.
+    const sorted = [{ cents: 2n }, { cents: 9n }, { cents: 10n }];
+
+    expect(orderBy(sorted, ['cents']).map((r) => r.cents)).toEqual([2n, 9n, 10n]);
+  });
+
+  it('should keep bigint precision above Number.MAX_SAFE_INTEGER', () => {
+    // The tempting workaround -- Number(x) -- collapses these two to the same value.
+    const arr = [{ id: 9007199254740993n }, { id: 9007199254740992n }];
+
+    expect(orderBy(arr, ['id']).map((r) => r.id)).toEqual([9007199254740992n, 9007199254740993n]);
+  });
+
+  it('should report equal bigints as tied, so a later key still breaks the tie', () => {
+    const arr = [
+      { cents: 5n, id: 2 },
+      { cents: 5n, id: 1 },
+    ];
+
+    expect(orderBy(arr, ['cents', 'id']).map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it('should treat a bigint mixed with a number as mixed, per the documented fallback', () => {
+    // Not two bigints, so this is the `mixed` row of the README table: stringify. Deliberate --
+    // handling cross-type numeric comparison is a separate decision from ordering bigints.
+    const arr = [{ v: 10n }, { v: 9 }];
+
+    expect(orderBy(arr, ['v']).map((r) => r.v)).toEqual([10n, 9]);
   });
 
   it('should still tie-break when an earlier numeric key ties on Infinity', () => {

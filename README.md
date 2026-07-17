@@ -16,6 +16,17 @@ Part of the [DeeBee](https://github.com/deebee-tech) ecosystem.
 npm install @deebeetech/array-helper
 ```
 
+Also published to [JSR](https://jsr.io/@deebeetech/array-helper), where the entry
+point is the TypeScript source:
+
+```bash
+deno add jsr:@deebeetech/array-helper
+npx jsr add @deebeetech/array-helper
+```
+
+Zero runtime dependencies. Node 20+ for the npm lane; no ES2023 features are
+used, so bundled browser builds carry no floor beyond ES2020.
+
 ## Functions
 
 - [compact](#compact)
@@ -28,6 +39,12 @@ function deriving the value to work on:
 ```typescript
 type Key<T> = keyof T | ((item: T) => unknown);
 ```
+
+A **property name** reads the property off each element, so the elements
+themselves must be non-nullish — `orderBy(rows, ['a'])` throws if `rows`
+contains a `null`. That's what `compact` is for (`orderBy(compact(rows), ['a'])`),
+or use a function key that tolerates it (`(i) => i?.a`). Nullish **values** are
+handled and ranked; nullish **elements** are not the same thing.
 
 #### compact
 
@@ -90,6 +107,7 @@ Values compare as themselves rather than as strings:
 | Type               | Order                                                  |
 | ------------------ | ------------------------------------------------------ |
 | number             | numerically                                            |
+| bigint             | numerically, at full precision                         |
 | string             | `localeCompare`                                        |
 | boolean            | `false` before `true`                                  |
 | Date               | chronologically                                        |

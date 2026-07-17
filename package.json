@@ -25,7 +25,8 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "types": "dist/index.d.mts",
   "publishConfig": {
@@ -45,6 +46,9 @@
     "spell": "cspell --no-progress \"**\"",
     "test": "vitest --coverage",
     "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "packageManager": "pnpm@11.13.0",
   "devDependencies": {
