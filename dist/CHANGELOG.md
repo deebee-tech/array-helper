@@ -1,3 +1,33 @@
+# [3.0.0](https://github.com/deebee-tech/array-helper/compare/v2.2.2...v3.0.0) (2026-07-17)
+
+
+### Bug Fixes
+
+* compare numbers by sign so an Infinity tie can't drop later sort keys ([cd5832b](https://github.com/deebee-tech/array-helper/commit/cd5832b4ebea8671ffa2d6f80756b376592eb30b))
+* order bigints, accept readonly arrays, and drop the ES2023 floor ([48e7dd3](https://github.com/deebee-tech/array-helper/commit/48e7dd3cae403698fd78c83d06495784c90dc078))
+
+
+### chore
+
+* parse bang commits in release notes, and correct the license holder ([a2ae41e](https://github.com/deebee-tech/array-helper/commit/a2ae41eb6e56c70ad184f8c5f95fecc2ba5e5565))
+
+
+### BREAKING CHANGES
+
+* footer, which renders through a separate path that stayed
+green throughout. Added the bang-only-no-footer case for both `feat!:` and
+`fix!:`. It fails without the parserOpts.
+
+LICENSE
+
+`Copyright (c) 2024 With One Vision Technologies` was stale, inherited from a
+template. That entity appears nowhere else in the repo, and 2024 predates the
+first commit (2025-07-16). Copyright cannot vest in the new entity until it
+legally exists, so this names the author personally for now; it is assignable
+later. The sibling DeeBee repos likely carry the same template line.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+
 ## [2.2.2](https://github.com/deebee-tech/array-helper/compare/v2.2.1...v2.2.2) (2026-07-16)
 
 

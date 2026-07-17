@@ -1,6 +1,6 @@
 {
   "name": "@deebeetech/array-helper",
-  "version": "2.2.2",
+  "version": "3.0.0",
   "description": "A small collection of extra methods for arrays that we mostly needed from LoDash and Underscore that we didn't want to carry the weight of those installs.",
   "homepage": "https://github.com/deebee-tech/array-helper",
   "license": "MIT",
@@ -25,7 +25,8 @@
         "types": "./index.d.cts",
         "default": "./index.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "types": "index.d.mts",
   "publishConfig": {
@@ -40,10 +41,14 @@
   "scripts": {
     "build": "tsdown && cpy './package.json' './dist/' && cpy './README.md' './dist/' && cpy './CHANGELOG.md' './dist/' && cpy './LICENSE' './dist/'",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "spell": "cspell --no-progress \"**\"",
     "test": "vitest --coverage",
     "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "packageManager": "pnpm@11.13.0",
   "devDependencies": {
@@ -62,6 +67,7 @@
     "cspell": "^10.0.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
+    "jsr": "^0.14.3",
     "prettier": "^3.9.5",
     "semantic-release": "^25.0.7",
     "semantic-release-replace-plugin": "^1.2.7",
