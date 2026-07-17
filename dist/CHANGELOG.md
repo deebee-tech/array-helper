@@ -7,9 +7,31 @@
 
 ## [2.2.1](https://github.com/deebee-tech/array-helper/compare/v2.2.0...v2.2.1) (2026-07-15)
 
+
+### Bug Fixes
+
+* brand README header with DeeBee wordmark lockup and ecosystem link ([e04e9a1](https://github.com/deebee-tech/array-helper/commit/e04e9a17bf9b3b1b242c2e7fae5cf3744d3b4be2))
+
 ## [2.2.0](https://github.com/deebee-tech/array-helper/compare/v2.1.0...v2.2.0) (2026-07-14)
 
+
+### Features
+
+* add compact, and make orderBy's null placement and collation configurable ([54b798c](https://github.com/deebee-tech/array-helper/commit/54b798c2adb5b3e73828210a2cbb153a4450ee50))
+
 ## [2.1.0](https://github.com/deebee-tech/array-helper/compare/v2.0.0...v2.1.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* **release:** publish JSR before the GitHub release and drop the asset upload ([1c83beb](https://github.com/deebee-tech/array-helper/commit/1c83beb0467e92e8b24ee0cf975c4c803adb9208))
+
+
+### Features
+
+* **helper:** accept iteratees and compare values as themselves ([a334452](https://github.com/deebee-tech/array-helper/commit/a334452c91d33348b63b8cf9ce6039ee4bc519d8))
+
+  Dates began comparing chronologically rather than by `toString()`, and nullish values moved from sorting alphabetically as `"null"`/`"undefined"` to sorting last ascending. Both are fixes, but they reorder existing results under a `^2` range — this note is backfilled, since the entry shipped empty.
 
 ## [2.0.0](https://github.com/deebee-tech/array-helper/compare/v1.0.0...v2.0.0) (2026-03-31)
 

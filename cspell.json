@@ -17,7 +17,8 @@
     "tsbuildinfo",
     "tseslint",
     "unranked",
-    "Weatherby"
+    "Weatherby",
+    "wordmark"
   ],
   "ignorePaths": ["node_modules", "dist", "coverage", "pnpm-lock.yaml", "**/*.map"]
 }
