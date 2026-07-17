@@ -39,6 +39,7 @@ function compare(a, b, options) {
 		return xNil && yNil ? 0 : xNil ? nil : -nil;
 	}
 	if (typeof x === "number" && typeof y === "number") return x < y ? -1 : x > y ? 1 : 0;
+	if (typeof x === "bigint" && typeof y === "bigint") return x < y ? -1 : x > y ? 1 : 0;
 	if (typeof x === "string" && typeof y === "string") return compareStrings(x, y, options.locale);
 	return compareStrings(String(x), String(y), options.locale);
 }
@@ -69,8 +70,11 @@ function uniqBy(arr, key) {
 /**
 * Sort an array by multiple keys and directions, returning a new array without mutating the
 * original. Each key is a property name or a function deriving the value to sort on, and directions
-* default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
-* values sort last ascending.
+* default to `"asc"`. Numbers, bigints, strings, booleans, and Dates each compare as themselves;
+* nullish values sort last ascending.
+*
+* A property name reads the property off each element, so the elements must be non-nullish — pass
+* the array through {@link compact} first, or use a function key that tolerates them.
 *
 * `options` refines the two comparisons that have no single right answer — see
 * {@link OrderByOptions} — leaving both alone to keep the sort as it was.
@@ -80,7 +84,7 @@ function orderBy(arr, keys, directions = [], options = {}) {
 		nulls: options.nulls ?? "last",
 		locale: options.locale ?? true
 	};
-	return arr.toSorted((a, b) => {
+	return [...arr].sort((a, b) => {
 		for (let i = 0; i < keys.length; i++) {
 			const result = compare(select(a, keys[i]), select(b, keys[i]), resolved);
 			if (result !== 0) return directions[i] === "desc" ? -result : result;

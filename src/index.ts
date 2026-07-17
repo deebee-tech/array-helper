@@ -136,8 +136,11 @@ export function uniqBy<T>(arr: readonly T[], key?: Key<T>): T[] {
 /**
  * Sort an array by multiple keys and directions, returning a new array without mutating the
  * original. Each key is a property name or a function deriving the value to sort on, and directions
- * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
- * values sort last ascending.
+ * default to `"asc"`. Numbers, bigints, strings, booleans, and Dates each compare as themselves;
+ * nullish values sort last ascending.
+ *
+ * A property name reads the property off each element, so the elements must be non-nullish — pass
+ * the array through {@link compact} first, or use a function key that tolerates them.
  *
  * `options` refines the two comparisons that have no single right answer — see
  * {@link OrderByOptions} — leaving both alone to keep the sort as it was.

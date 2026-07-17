@@ -11,7 +11,7 @@ interface OrderByOptions {
    * descending) and `"first"` reproduces MSSQL and SQLite, which rank a null below every value.
    * A dialect-agnostic sort has to be able to say which. Defaults to `"last"`.
    */
-  nulls?: 'first' | 'last';
+  nulls?: 'first' | 'last' | undefined;
   /**
    * Whether strings compare with `localeCompare`. Set `false` to compare by codepoint instead.
    * `localeCompare` is ICU- and locale-dependent, so the same two strings can order differently on
@@ -19,7 +19,7 @@ interface OrderByOptions {
    * deep-equality check, or URL state, where a reshuffle reads as a change that never happened.
    * Defaults to `true`.
    */
-  locale?: boolean;
+  locale?: boolean | undefined;
 }
 /**
  * Return the array without its nullish entries, narrowing `(T | null | undefined)[]` to `T[]` —
@@ -34,17 +34,20 @@ declare function compact<T>(arr: readonly (T | null | undefined)[]): T[];
  * Return the unique values in an array, optionally deduplicated by a key or a derived value.
  * The first occurrence of each distinct value wins.
  */
-declare function uniqBy<T>(arr: T[], key?: Key<T>): T[];
+declare function uniqBy<T>(arr: readonly T[], key?: Key<T>): T[];
 /**
  * Sort an array by multiple keys and directions, returning a new array without mutating the
  * original. Each key is a property name or a function deriving the value to sort on, and directions
- * default to `"asc"`. Numbers, strings, booleans, and Dates each compare as themselves; nullish
- * values sort last ascending.
+ * default to `"asc"`. Numbers, bigints, strings, booleans, and Dates each compare as themselves;
+ * nullish values sort last ascending.
+ *
+ * A property name reads the property off each element, so the elements must be non-nullish — pass
+ * the array through {@link compact} first, or use a function key that tolerates them.
  *
  * `options` refines the two comparisons that have no single right answer — see
  * {@link OrderByOptions} — leaving both alone to keep the sort as it was.
  */
-declare function orderBy<T>(arr: T[], keys: Key<T>[], directions?: ('asc' | 'desc')[], options?: OrderByOptions): T[];
+declare function orderBy<T>(arr: readonly T[], keys: readonly Key<T>[], directions?: readonly ('asc' | 'desc')[], options?: OrderByOptions): T[];
 //#endregion
 export { Key, OrderByOptions, compact, orderBy, uniqBy };
 //# sourceMappingURL=index.d.mts.map
