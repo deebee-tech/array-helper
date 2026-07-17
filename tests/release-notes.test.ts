@@ -87,6 +87,27 @@ describe('release notes generation', () => {
     expect(notes).toContain('correct the thing');
   });
 
+  it('renders a bang commit that carries NO footer, the shape the other tests cannot fail on', async () => {
+    // commit-analyzer runs on `conventionalcommits`, which reads `!` and calls this a major.
+    // The notes generator has no preset, and the angular headerPattern it falls back to has no
+    // `!` -- so before parserOpts, this exact commit cut a 3.0.0 whose notes were a bare header.
+    // Every other test here pairs `!` with a BREAKING CHANGE footer, which renders via a separate
+    // path that stayed green throughout, so none of them could catch it.
+    const bang = await notesFor('major', [
+      commit('f'.repeat(40), 'feat!: drop the legacy Key export'),
+    ]);
+    const header = await notesFor('major', []);
+
+    expect(bang).toContain('drop the legacy Key export');
+    expect(bang).toMatch(/BREAKING CHANGE/i);
+    expect(bang).not.toBe(header);
+
+    // `fix!:` regresses identically and is just as likely to be the first bang commit written.
+    const bangFix = await notesFor('major', [commit('0'.repeat(40), 'fix!: change the default')]);
+
+    expect(bangFix).toContain('change the default');
+  });
+
   it('renders more than a header, which is the exact failure that shipped four times', async () => {
     const header = await notesFor('major', []);
     const withCommits = await notesFor('major', [

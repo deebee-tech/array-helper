@@ -22,14 +22,27 @@ export default {
         preset: 'conventionalcommits',
       },
     ],
-    // NO `preset` here, deliberately. Pointing this at 'conventionalcommits' resolves the
-    // top-level conventional-changelog-conventionalcommits (v10), whose new
-    // `{commits, parser, writer, whatBump}` export shape this plugin's bundled
-    // conventional-changelog-writer@8 cannot read -- it silently rendered every release from
-    // 2.1.0 onward as a bare header with no body, hiding what those releases changed.
-    // Omitting it uses the writer's own version-locked angular preset, which parses `feat!:`
-    // and renders the breaking body. tests/release-notes.test.ts pins this.
-    '@semantic-release/release-notes-generator',
+    [
+      // NO `preset` here, deliberately. Pointing this at 'conventionalcommits' resolves the
+      // top-level conventional-changelog-conventionalcommits (v10), whose new
+      // `{commits, parser, writer, whatBump}` export shape this plugin's bundled
+      // conventional-changelog-writer@8 cannot read -- it silently rendered every release from
+      // 2.1.0 onward as a bare header with no body, hiding what those releases changed.
+      // Omitting it falls back to the writer's own version-locked angular preset.
+      '@semantic-release/release-notes-generator',
+      {
+        // ...but that preset's headerPattern has no `!`, so a bang commit parsed clean by
+        // commit-analyzer above (which IS on conventionalcommits) renders as nothing at all:
+        // `feat!: x` with no BREAKING CHANGE footer cut a MAJOR whose notes were a bare header.
+        // These parserOpts add `!` to the angular patterns without pulling in the v10 writer.
+        // tests/release-notes.test.ts pins both halves.
+        parserOpts: {
+          headerPattern: /^(\w*)(?:\((.*)\))?!?: (.*)$/,
+          headerCorrespondence: ['type', 'scope', 'subject'],
+          breakingHeaderPattern: /^(\w*)(?:\((.*)\))?!: (.*)$/,
+        },
+      },
+    ],
     [
       '@semantic-release/changelog',
       {
