@@ -1,5 +1,13 @@
 version: 2
 
+# Cooldowns are not tidiness -- pnpm 11 enforces a supply-chain policy that this file has to agree
+# with. `minimumReleaseAge` defaults to 24h, and `pnpm install --frozen-lockfile` HARD-FAILS on a
+# lockfile entry younger than that, so a Dependabot PR raised against a fresh release breaks its own
+# CI before a human reads it. (It did: the first dev-dependencies PR proposed tsdown@0.22.9 ~22h
+# after publication and died on ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION.) Every window below clears
+# that 24h with room, and soaking longer is the point of the policy anyway -- a compromised release
+# is usually yanked within days, which is time these windows buy for free.
+
 updates:
   # The workflows pin actions to full commit SHAs, which is the point -- a git tag is mutable, and
   # release.yaml runs actions in the same job as NPM_TOKEN and id-token: write. A SHA cannot be
@@ -9,6 +17,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
     commit-message:
       prefix: ci
 
@@ -16,6 +27,11 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
+      semver-patch-days: 3
+      semver-minor-days: 7
+      semver-major-days: 30
     commit-message:
       # `chore(deps)` cuts no release, which is correct: every dependency here is a devDependency,
       # so none of it reaches a consumer's install.
@@ -24,3 +40,8 @@ updates:
     groups:
       dev-dependencies:
         patterns: ['*']
+        # Minor and patch only. Grouping majors in here swept TypeScript 5.9 -> 7.0 into a routine
+        # `chore(deps-dev)` PR alongside six unrelated bumps -- a compiler rewrite hidden in a
+        # batch nobody reads closely. Majors still get proposed; they just arrive one per PR, with
+        # their own CI signal and their own decision.
+        update-types: ['minor', 'patch']
